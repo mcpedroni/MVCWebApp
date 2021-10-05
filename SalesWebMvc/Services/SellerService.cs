@@ -17,8 +17,10 @@ namespace SalesWebMvc.Services {
         }
 
         public List<Seller> FindAll() {
-            return _context.Seller.ToList().OrderBy(s => s.Name).ToList(); 
+            return _context.Seller.ToList().OrderBy(s => s.Name).ToList();
+
         }
+
         public void Insert(Seller obj) {
             _context.Add(obj);
             _context.SaveChanges();

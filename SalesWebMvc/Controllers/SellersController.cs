@@ -37,6 +37,14 @@ namespace SalesWebMvc.Controllers {
         [ValidateAntiForgeryToken] //previne que alguem aproveite a sessao de autenticacao e envia dados maliciosos.
         //insert seller on database
         public IActionResult Create(Seller seller) {
+
+            //caso o JS esteja desabilitado no lado do cliente
+            if (!ModelState.IsValid) {
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
+
             _sellerService.Insert(seller);
             //retorna pra tela Index
             return RedirectToAction(nameof(Index));
@@ -94,6 +102,13 @@ namespace SalesWebMvc.Controllers {
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Seller seller) {
+
+            //caso o JS esteja desabilitado no lado do cliente
+            if (!ModelState.IsValid) {
+                var departments = _departmentService.FindAll();
+                var viewModel = new SellerFormViewModel { Seller = seller, Departments = departments };
+                return View(viewModel);
+            }
 
             if (id != seller.Id) {
                 return RedirectToAction(nameof(Error), new { message = "Id mismatch" });
