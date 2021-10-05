@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SalesWebMvc.Services.Exceptions;
 
 namespace SalesWebMvc.Controllers {
     public class SellersController : Controller {
@@ -15,11 +16,11 @@ namespace SalesWebMvc.Controllers {
 
         public SellersController(SellerService sellerService, DepartmentService departmentService) {
             _sellerService = sellerService;
-            _departmentService = departmentService; 
+            _departmentService = departmentService;
 
         }
         public IActionResult Index() {
-            var list = _sellerService.FindAll(); 
+            var list = _sellerService.FindAll();
             return View(list);
         }
 
@@ -28,8 +29,8 @@ namespace SalesWebMvc.Controllers {
             var departments = _departmentService.FindAll();
             var viewModel = new SellerFormViewModel { Departments = departments }; //instancia com uma lista contendo todos departamentos
             return View(viewModel);
-        }        
-        
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken] //previne que alguem aproveite a sessao de autenticacao e envia dados maliciosos.
         //insert seller on database
@@ -72,5 +73,38 @@ namespace SalesWebMvc.Controllers {
             return View(obj);
         }
 
+        public IActionResult Edit(int? id) {
+            if (id == null) {
+                return NotFound();
+            }
+
+            var obj = _sellerService.FindById(id.Value);
+            if (obj == null) {
+                return NotFound();
+            }
+
+            List<Department> departments = _departmentService.FindAll();
+            SellerFormViewModel viewModel = new SellerFormViewModel { Seller = obj, Departments = departments }; //carrega o seller conforme os dados do banco de dados e carrega a lista de departmentos.
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Edit(int id, Seller seller) {
+            
+            if (id != seller.Id) {
+                return BadRequest();
+            }
+
+            try {
+                _sellerService.Update(seller);
+                return RedirectToAction(nameof(Index));
+            } catch (NotFoundException) {
+                return NotFound();
+            } catch (DbConcurrencyException) {
+                return NotFound();
+            }
+        }
     }
 }
