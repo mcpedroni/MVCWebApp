@@ -16,36 +16,38 @@ namespace SalesWebMvc.Services {
             _context = context; 
         }
 
-        public List<Seller> FindAll() {
-            return _context.Seller.ToList().OrderBy(s => s.Name).ToList();
+        public async Task<List<Seller>> FindAll() {
+            return await _context.Seller.ToListAsync();
 
         }
 
-        public void Insert(Seller obj) {
+        public async Task Insert(Seller obj) {
             _context.Add(obj);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
 
-        public Seller FindById(int id) {
+        public async Task<Seller> FindById(int id) {
             //using Include to do join Department and Seller. Call this eager loading
-            return _context.Seller.Include(obj => obj.Department).FirstOrDefault(obj => obj.Id == id);
+            return await _context.Seller.Include(obj => obj.Department).FirstOrDefaultAsync(obj => obj.Id == id);
         }
 
-        public void Remove(int id) {
-            var obj = _context.Seller.Find(id);
+        public async Task Remove(int id) {
+            var obj = await _context.Seller.FindAsync(id);
             _context.Seller.Remove(obj);
-            _context.SaveChanges();
+            await  _context.SaveChangesAsync();
         }
 
-        public void Update(Seller obj) {
+        public async Task Update(Seller obj) {
 
-            if (! _context.Seller.Any(x => x.Id == obj.Id)) {
+            bool hasAnyValue = await _context.Seller.AnyAsync(x => x.Id == obj.Id);
+
+            if (!hasAnyValue) {
                 throw new NotFoundException("Id not found");
             }
 
             try {
                 _context.Update(obj);
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
             catch (DbConcurrencyException e){
                 throw new DbConcurrencyException(e.Message);
